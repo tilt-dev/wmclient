@@ -1,25 +1,16 @@
 package analytics_test
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/windmilleng/wmclient/pkg/analytics"
-	"github.com/windmilleng/windmill/os/temp"
 )
 
 func TestSetOptStr(t *testing.T) {
-	oldWindmillDir := os.Getenv("WINDMILL_DIR")
-	defer os.Setenv("WINDMILL_DIR", oldWindmillDir)
-	tmpdir, err := temp.NewDir("TestOpt")
-	if err != nil {
-		t.Fatalf("Error making temp dir: %v", err)
-	}
-
 	f := setup(t)
-
-	os.Setenv("WINDMILL_DIR", tmpdir.Path())
-
+	defer f.tearDown()
 	f.assertOptStatus(analytics.OptDefault)
 
 	analytics.SetOptStr("opt-in")
@@ -39,16 +30,8 @@ func TestSetOptStr(t *testing.T) {
 }
 
 func TestSetOpt(t *testing.T) {
-	oldWindmillDir := os.Getenv("WINDMILL_DIR")
-	defer os.Setenv("WINDMILL_DIR", oldWindmillDir)
-	tmpdir, err := temp.NewDir("TestOpt")
-	if err != nil {
-		t.Fatalf("Error making temp dir: %v", err)
-	}
-
 	f := setup(t)
-
-	os.Setenv("WINDMILL_DIR", tmpdir.Path())
+	defer f.tearDown()
 
 	f.assertOptStatus(analytics.OptDefault)
 
@@ -63,11 +46,25 @@ func TestSetOpt(t *testing.T) {
 }
 
 type fixture struct {
-	t *testing.T
+	t              *testing.T
+	dir            string
+	oldWindmillDir string
 }
 
 func setup(t *testing.T) *fixture {
-	return &fixture{t: t}
+	oldWindmillDir := os.Getenv("WINDMILL_DIR")
+	dir, err := ioutil.TempDir("", t.Name())
+	if err != nil {
+		t.Fatalf("Error making temp dir: %v", err)
+	}
+
+	os.Setenv("WINDMILL_DIR", dir)
+	return &fixture{t: t, dir: dir, oldWindmillDir: oldWindmillDir}
+}
+
+func (f *fixture) tearDown() {
+	os.RemoveAll(f.dir)
+	os.Setenv("WINDMILL_DIR", f.oldWindmillDir)
 }
 
 func (f *fixture) assertOptStatus(expected analytics.Opt) {
