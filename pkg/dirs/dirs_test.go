@@ -1,6 +1,7 @@
 package dirs
 
 import (
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -38,6 +39,29 @@ func TestWindmillDir(t *testing.T) {
 
 	os.Unsetenv("WMDAEMON_HOME")
 	f.assertWindmillDir(wmDir, "no WMDAEMON_HOME")
+}
+
+func TestOpenFile(t *testing.T) {
+	tmp, _ := ioutil.TempDir("", t.Name())
+	defer os.RemoveAll(tmp)
+	dir := NewWindmillDirAt(tmp)
+
+	fp, err := dir.OpenFile("inner/a.txt", os.O_WRONLY|os.O_CREATE, os.FileMode(0700))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fp.Write([]byte("hello"))
+	fp.Close()
+
+	contents, err := dir.ReadFile("inner/a.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if contents != "hello" {
+		t.Errorf("Expected %q. Actual: %q", "hello", contents)
+	}
 }
 
 type fixture struct {
