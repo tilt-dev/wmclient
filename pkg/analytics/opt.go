@@ -22,6 +22,14 @@ var Choices = map[Opt]string{
 	OptIn:      "opt-in",
 }
 
+func (o Opt) String() string {
+	val, ok := Choices[o]
+	if ok {
+		return val
+	}
+	return fmt.Sprintf("opt[%d]", o)
+}
+
 func OptStatus() (Opt, error) {
 	txt, err := readChoiceFile()
 	if err != nil {
@@ -54,7 +62,7 @@ func SetOptStr(s string) error {
 }
 
 func SetOpt(c Opt) error {
-	s := Choices[c]
+	s := c.String()
 
 	d, err := dirs.UseWindmillDir()
 	if err != nil {

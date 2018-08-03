@@ -8,6 +8,12 @@ import (
 	"github.com/windmilleng/wmclient/pkg/analytics"
 )
 
+func TestString(t *testing.T) {
+	if analytics.OptIn.String() != "opt-in" {
+		t.Errorf("Expected opt-in, actual: %s", analytics.OptIn)
+	}
+}
+
 func TestSetOptStr(t *testing.T) {
 	f := setup(t)
 	defer f.tearDown()
