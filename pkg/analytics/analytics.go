@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"sync"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -46,6 +47,7 @@ type Analytics interface {
 	Count(name string, tags map[string]string, n int)
 	Incr(name string, tags map[string]string)
 	Timer(name string, dur time.Duration, tags map[string]string)
+	Flush(timeout time.Duration)
 }
 
 type remoteAnalytics struct {
@@ -54,6 +56,7 @@ type remoteAnalytics struct {
 	url     string
 	userId  string
 	optedIn bool
+	wg      *sync.WaitGroup
 }
 
 func hashMd5(in []byte) string {
@@ -82,7 +85,7 @@ func NewDefaultRemoteAnalytics(appName string) *remoteAnalytics {
 }
 
 func NewRemoteAnalytics(cli HTTPClient, app, url, userId string, optedIn bool) *remoteAnalytics {
-	return &remoteAnalytics{cli: cli, app: app, url: url, userId: userId, optedIn: optedIn}
+	return &remoteAnalytics{cli: cli, app: app, url: url, userId: userId, optedIn: optedIn, wg: &sync.WaitGroup{}}
 }
 
 func (a *remoteAnalytics) namespaced(name string) string {
@@ -117,10 +120,13 @@ func (a *remoteAnalytics) Count(name string, tags map[string]string, n int) {
 		return
 	}
 
+	a.wg.Add(1)
 	go a.count(name, tags, n)
 }
 
 func (a *remoteAnalytics) count(name string, tags map[string]string, n int) {
+	defer a.wg.Done()
+
 	req, err := a.countReq(name, tags, n)
 	if err != nil {
 		// Stat reporter can't return errs, just print it.
@@ -155,10 +161,13 @@ func (a *remoteAnalytics) Timer(name string, dur time.Duration, tags map[string]
 		return
 	}
 
+	a.wg.Add(1)
 	go a.timer(name, dur, tags)
-
 }
+
 func (a *remoteAnalytics) timer(name string, dur time.Duration, tags map[string]string) {
+	defer a.wg.Done()
+
 	req, err := a.timerReq(name, dur, tags)
 	if err != nil {
 		// Stat reporter can't return errs, just print it.
@@ -175,6 +184,19 @@ func (a *remoteAnalytics) timer(name string, dur time.Duration, tags map[string]
 		fmt.Fprintf(os.Stderr, "[analytics] http.Post returned status: %s\n", resp.Status)
 	}
 
+}
+
+func (a *remoteAnalytics) Flush(timeout time.Duration) {
+	ch := make(chan bool)
+	go func() {
+		a.wg.Wait()
+		close(ch)
+	}()
+
+	select {
+	case <-time.After(timeout):
+	case <-ch:
+	}
 }
 
 func (a *remoteAnalytics) timerReq(name string, dur time.Duration, tags map[string]string) (*http.Request, error) {
@@ -215,6 +237,8 @@ func (a *MemoryAnalytics) Incr(name string, tags map[string]string) {
 func (a *MemoryAnalytics) Timer(name string, dur time.Duration, tags map[string]string) {
 	a.Timers = append(a.Timers, TimeEvent{name: name, dur: dur, tags: tags})
 }
+
+func (a *MemoryAnalytics) Flush(timeout time.Duration) {}
 
 var _ Analytics = &remoteAnalytics{}
 var _ Analytics = &MemoryAnalytics{}
