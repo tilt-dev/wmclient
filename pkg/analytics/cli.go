@@ -11,12 +11,12 @@ import (
 )
 
 func analyticsStatus(_ *cobra.Command, args []string) error {
-	//fmt.Println("[ for more info: https://windmill.engineering/analytics ]")
 	choice, err := OptStatus()
 	if err != nil {
 		return err
 	}
-	fmt.Printf("current collection strategy: %v\n", choice)
+
+	fmt.Printf("analytics status: %s\n", choice)
 
 	return nil
 }
@@ -26,10 +26,10 @@ func analyticsOpt(_ *cobra.Command, args []string) (outerErr error) {
 		if outerErr == nil {
 			return
 		}
-		fmt.Printf("choice can be one of {%v, %v}\n", Choices[OptIn], Choices[OptOut])
+		fmt.Printf("choice can be one of {%s, %s}\n", OptIn, OptOut)
 	}()
 	if len(args) == 0 {
-		fmt.Printf("choice can be one of {%v, %v}\n", Choices[OptIn], Choices[OptOut])
+		fmt.Printf("choice can be one of {%s, %s}\n", OptIn, OptOut)
 		return fmt.Errorf("no choice given; pass it as first arg: <tool> analytics opt <choice>")
 	}
 	choiceStr := args[0]
