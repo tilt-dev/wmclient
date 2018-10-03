@@ -1,11 +1,9 @@
-package analytics_test
+package analytics
 
 import (
 	"net/http"
 	"testing"
 	"time"
-
-	"github.com/windmilleng/wmclient/pkg/analytics"
 )
 
 func TestFlush(t *testing.T) {
@@ -20,15 +18,24 @@ func TestFlush(t *testing.T) {
 	}
 }
 
+func TestUserID(t *testing.T) {
+	uname := []byte("Linux Sleepy 4.15.0-34-generic #37-Ubuntu SMP Mon Aug 27 15:21:48 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux")
+	hash := hashMD5(uname)
+	expected := "39894d36bdd53cfe67fca4e7f570e7ff"
+	if hash != expected {
+		t.Errorf("Expected %q, actual %q", expected, hash)
+	}
+}
+
 type analyticsFixture struct {
 	t    *testing.T
-	a    analytics.Analytics
+	a    Analytics
 	reqs []*http.Request
 }
 
 func newAnalyticsFixture(t *testing.T) *analyticsFixture {
 	f := &analyticsFixture{t: t}
-	a := analytics.NewRemoteAnalytics(f, "test-app", "/report", "random-user", true)
+	a := NewRemoteAnalytics(f, "test-app", "/report", "random-user", true)
 	f.a = a
 	return f
 }
