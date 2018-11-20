@@ -6,6 +6,6 @@ jobs:
     working_directory: /go/src/github.com/windmilleng/wmclient
     steps:
       - checkout
-      - run: go get ./...
+      - run: go get -t ./...
       - run: make lint
       - run: make test
