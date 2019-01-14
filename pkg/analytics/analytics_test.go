@@ -1,6 +1,7 @@
 package analytics
 
 import (
+	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
@@ -27,15 +28,35 @@ func TestUserID(t *testing.T) {
 	}
 }
 
+func TestGlobalTags(t *testing.T) {
+	f := newAnalyticsFixture(t, WithGlobalTags(map[string]string{"fruit": "pomelo"}))
+	f.a.Incr("event", map[string]string{"season": "summer"})
+	f.a.Flush(time.Second)
+
+	if len(f.reqs) != 1 {
+		t.Fatalf("Expected 1 event sent. Actual: %d", len(f.reqs))
+	}
+
+	expected := `{"fruit":"pomelo","name":"test-app.event","season":"summer","user":"random-user"}`
+	body, err := ioutil.ReadAll(f.reqs[0].Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(body) != expected {
+		t.Errorf("Request body did not match\nExpected: %s\nActual: %s", expected, string(body))
+	}
+}
+
 type analyticsFixture struct {
 	t    *testing.T
 	a    Analytics
 	reqs []*http.Request
 }
 
-func newAnalyticsFixture(t *testing.T) *analyticsFixture {
+func newAnalyticsFixture(t *testing.T, options ...Option) *analyticsFixture {
 	f := &analyticsFixture{t: t}
-	a := NewRemoteAnalytics(f, "test-app", "/report", "random-user", true)
+	a := NewRemoteAnalytics(f, "test-app", "/report", "random-user", true, options...)
 	f.a = a
 	return f
 }
