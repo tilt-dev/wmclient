@@ -54,9 +54,19 @@ type analyticsFixture struct {
 	reqs []*http.Request
 }
 
-func newAnalyticsFixture(t *testing.T, options ...Option) *analyticsFixture {
+func newAnalyticsFixture(t *testing.T, fOptions ...Option) *analyticsFixture {
 	f := &analyticsFixture{t: t}
-	a := NewRemoteAnalytics(f, "test-app", "/report", "random-user", true, options...)
+	options := []Option{
+		WithHTTPClient(f),
+		WithReportURL("/report"),
+		WithUserID("random-user"),
+		WithEnabled(true),
+	}
+	options = append(options, fOptions...)
+	a, err := NewRemoteAnalytics("test-app", options...)
+	if err != nil {
+		t.Fatal(err)
+	}
 	f.a = a
 	return f
 }
