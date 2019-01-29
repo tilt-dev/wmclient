@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -38,7 +37,11 @@ type Logger interface {
 	Printf(format string, v ...interface{})
 }
 
-var stdLogger = log.New(os.Stderr, "[analytics] ", log.LstdFlags)
+type stdLogger struct{}
+
+func (stdLogger) Printf(format string, v ...interface{}) {
+	log.Printf("[analytics] %s", fmt.Sprintf(format, v...))
+}
 
 func Init(appName string, options ...Option) (Analytics, *cobra.Command, error) {
 	a, err := NewRemoteAnalytics(appName, options...)
@@ -108,7 +111,7 @@ func NewRemoteAnalytics(appName string, options ...Option) (*remoteAnalytics, er
 		url:        statsEndpt,
 		userID:     getUserID(),
 		enabled:    enabled,
-		logger:     stdLogger,
+		logger:     stdLogger{},
 		wg:         &sync.WaitGroup{},
 		globalTags: make(map[string]string),
 	}

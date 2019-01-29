@@ -41,7 +41,7 @@ func WithEnabled(enabled bool) Option {
 }
 
 // Sets the logger where errors are printed.
-// Defaults to printing to stderr with the prefix "[analytics] ".
+// Defaults to printing to the default logger with the prefix "[analytics] ".
 func WithLogger(logger Logger) Option {
 	return Option(func(a *remoteAnalytics) {
 		a.logger = logger
