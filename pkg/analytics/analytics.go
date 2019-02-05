@@ -70,8 +70,6 @@ type remoteAnalytics struct {
 	cli        HTTPClient
 	app        string
 	url        string
-	userID     string
-	machineID  string
 	enabled    bool
 	logger     Logger
 	globalTags map[string]string
@@ -120,12 +118,10 @@ func NewRemoteAnalytics(appName string, options ...Option) (*remoteAnalytics, er
 		cli:        cli,
 		app:        appName,
 		url:        statsEndpt,
-		userID:     getUserID(),
-		machineID: getMachineID(),
 		enabled:    enabled,
 		logger:     stdLogger{},
 		wg:         &sync.WaitGroup{},
-		globalTags: make(map[string]string),
+		globalTags: map[string]string{keyUser: getUserID(), keyMachine: getMachineID()},
 	}
 	for _, o := range options {
 		o(a)
@@ -138,7 +134,7 @@ func (a *remoteAnalytics) namespaced(name string) string {
 }
 
 func (a *remoteAnalytics) baseReqBody(name string, tags map[string]string) map[string]interface{} {
-	req := map[string]interface{}{keyName: a.namespaced(name), keyUser: a.userID, keyMachine: a.machineID}
+	req := map[string]interface{}{keyName: a.namespaced(name)}
 	for k, v := range a.globalTags {
 		req[k] = v
 	}
