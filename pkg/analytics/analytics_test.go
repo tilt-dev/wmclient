@@ -3,6 +3,7 @@ package analytics
 import (
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"testing"
 	"time"
 )
@@ -52,6 +53,7 @@ type analyticsFixture struct {
 	t    *testing.T
 	a    Analytics
 	reqs []*http.Request
+	mu   sync.Mutex
 }
 
 func newAnalyticsFixture(t *testing.T, fOptions ...Option) *analyticsFixture {
@@ -72,6 +74,8 @@ func newAnalyticsFixture(t *testing.T, fOptions ...Option) *analyticsFixture {
 }
 
 func (f *analyticsFixture) Do(req *http.Request) (*http.Response, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
 	f.reqs = append(f.reqs, req)
 	return &http.Response{StatusCode: 200}, nil
 }
