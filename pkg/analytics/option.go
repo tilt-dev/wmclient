@@ -32,6 +32,12 @@ func WithUserID(userID string) Option {
 	})
 }
 
+func WithMachineID(machineID string) Option {
+	return Option(func(a *remoteAnalytics) {
+		a.machineID = machineID
+	})
+}
+
 // Sets whether the analytics client is enabled. Defaults to checking
 // the users' opt-in setting in ~/.windmill
 func WithEnabled(enabled bool) Option {

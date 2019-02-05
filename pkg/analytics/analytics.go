@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/denisbrodbeck/machineid"
 )
 
 const statsEndpt = "https://events.windmill.build/report"
@@ -25,6 +26,7 @@ const (
 	keyDuration = "duration"
 	keyName     = "name"
 	keyUser     = "user"
+	keyMachine  = "machine"
 )
 
 var cli = &http.Client{Timeout: statsTimeout}
@@ -69,6 +71,7 @@ type remoteAnalytics struct {
 	app        string
 	url        string
 	userID     string
+	machineID  string
 	enabled    bool
 	logger     Logger
 	globalTags map[string]string
@@ -97,6 +100,14 @@ func getUserID() string {
 	return hashMD5(out)
 }
 
+func getMachineID() string {
+	mid, err := machineid.ID()
+	if err != nil {
+		return "anon"
+	}
+	return hashMD5([]byte(mid))
+}
+
 // Create a remote analytics object with Windmill-specific defaults
 // for the HTTPClient, report URL, user ID, and opt-in status.
 // All of these defaults can be overridden with appropriate options.
@@ -110,6 +121,7 @@ func NewRemoteAnalytics(appName string, options ...Option) (*remoteAnalytics, er
 		app:        appName,
 		url:        statsEndpt,
 		userID:     getUserID(),
+		machineID: getMachineID(),
 		enabled:    enabled,
 		logger:     stdLogger{},
 		wg:         &sync.WaitGroup{},
@@ -126,7 +138,7 @@ func (a *remoteAnalytics) namespaced(name string) string {
 }
 
 func (a *remoteAnalytics) baseReqBody(name string, tags map[string]string) map[string]interface{} {
-	req := map[string]interface{}{keyName: a.namespaced(name), keyUser: a.userID}
+	req := map[string]interface{}{keyName: a.namespaced(name), keyUser: a.userID, keyMachine: a.machineID}
 	for k, v := range a.globalTags {
 		req[k] = v
 	}

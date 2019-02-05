@@ -37,7 +37,7 @@ func TestGlobalTags(t *testing.T) {
 		t.Fatalf("Expected 1 event sent. Actual: %d", len(f.reqs))
 	}
 
-	expected := `{"fruit":"pomelo","name":"test-app.event","season":"summer","user":"random-user"}`
+	expected := `{"fruit":"pomelo","machine":"random-machine","name":"test-app.event","season":"summer","user":"random-user"}`
 	body, err := ioutil.ReadAll(f.reqs[0].Body)
 	if err != nil {
 		t.Fatal(err)
@@ -60,6 +60,7 @@ func newAnalyticsFixture(t *testing.T, fOptions ...Option) *analyticsFixture {
 		WithHTTPClient(f),
 		WithReportURL("/report"),
 		WithUserID("random-user"),
+		WithMachineID("random-machine"),
 		WithEnabled(true),
 	}
 	options = append(options, fOptions...)
