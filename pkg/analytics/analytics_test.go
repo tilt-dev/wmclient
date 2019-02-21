@@ -38,7 +38,7 @@ func TestGlobalTags(t *testing.T) {
 		t.Fatalf("Expected 1 event sent. Actual: %d", len(f.reqs))
 	}
 
-	expected := `{"fruit":"pomelo","machine":"random-machine","name":"test-app.event","season":"summer","user":"random-user"}`
+	expected := `{"fruit":"pomelo","machine":"random-machine","name":"test-app.event","season":"summer","timestamp":"2019-01-05T03:07:10Z","user":"random-user"}`
 	body, err := ioutil.ReadAll(f.reqs[0].Body)
 	if err != nil {
 		t.Fatal(err)
@@ -54,6 +54,7 @@ type analyticsFixture struct {
 	a    Analytics
 	reqs []*http.Request
 	mu   sync.Mutex
+	now  time.Time
 }
 
 func newAnalyticsFixture(t *testing.T, fOptions ...Option) *analyticsFixture {
@@ -67,6 +68,10 @@ func newAnalyticsFixture(t *testing.T, fOptions ...Option) *analyticsFixture {
 	}
 	options = append(options, fOptions...)
 	a, err := NewRemoteAnalytics("test-app", options...)
+	f.now = time.Date(2019, 1, 5, 3, 7, 10, 0, time.UTC)
+	a.clock = func() time.Time {
+		return f.now
+	}
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -23,10 +23,11 @@ const statsTimeout = time.Minute
 
 // keys for request to stats server
 const (
-	keyDuration = "duration"
-	keyName     = "name"
-	keyUser     = "user"
-	keyMachine  = "machine"
+	keyDuration  = "duration"
+	keyName      = "name"
+	keyUser      = "user"
+	keyMachine   = "machine"
+	keyTimestamp = "timestamp"
 )
 
 var cli = &http.Client{Timeout: statsTimeout}
@@ -74,6 +75,7 @@ type remoteAnalytics struct {
 	logger     Logger
 	globalTags map[string]string
 	wg         *sync.WaitGroup
+	clock      func() time.Time
 }
 
 func hashMD5(in []byte) string {
@@ -121,7 +123,7 @@ func NewRemoteAnalytics(appName string, options ...Option) (*remoteAnalytics, er
 		enabled:    enabled,
 		logger:     stdLogger{},
 		wg:         &sync.WaitGroup{},
-		globalTags: map[string]string{keyUser: getUserID(), keyMachine: getMachineID()},
+		globalTags: make(map[string]string),
 	}
 	for _, o := range options {
 		o(a)
@@ -141,6 +143,8 @@ func (a *remoteAnalytics) baseReqBody(name string, tags map[string]string) map[s
 	for k, v := range tags {
 		req[k] = v
 	}
+	req[keyTimestamp] = a.clock().Format(time.RFC3339)
+
 	return req
 }
 
