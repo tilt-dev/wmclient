@@ -1,13 +1,16 @@
 package analytics
 
+import "fmt"
+
 // OptReporter is a short-lived Analytics to record a single metric (stripped of
 // identifying information) and then disable itself. For use before user
 // has opted in or out, and ONLY for use sending a metric of their choice.
-type optReporter struct {
+type OptReporter struct {
 	a *remoteAnalytics
+	used bool
 }
 
-func newOptReporter(appName string, options ...Option) (*optReporter, error) {
+func NewOptReporter(appName string, options ...Option) (*OptReporter, error) {
 	options = append(options,
 		WithEnabled(true), // always enabled for first call
 		WithUserID("anon"), WithMachineID("anon")) // anonymized
@@ -16,10 +19,16 @@ func newOptReporter(appName string, options ...Option) (*optReporter, error) {
 		return nil, err
 	}
 
-	return &optReporter{a}, nil
+	return &OptReporter{a: a}, nil
 }
 
-func (or *optReporter) incrOpt(c Opt) {
+func (or *OptReporter) incrOpt(c Opt) error {
+	if or.used {
+		return fmt.Errorf("optReporter already used, can't incr opt: %s", c.String())
+	}
 	or.a.Incr("analytics.opt", map[string]string{"choice": c.String()})
-	or.a.enabled = false
+
+	or.used = true
+	or.a.enabled = false // disable analytics, just to be safe.
+	return nil
 }
