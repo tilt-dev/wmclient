@@ -30,6 +30,15 @@ func (o Opt) String() string {
 	return fmt.Sprintf("opt[%d]", o)
 }
 
+func OptFromString(s string) (Opt, error) {
+	for k, v := range Choices {
+		if s == v {
+			return k, nil
+		}
+	}
+	return OptDefault, fmt.Errorf("unrecognized opt string: '%s'", s)
+}
+
 func OptStatus() (Opt, error) {
 	txt, err := readChoiceFile()
 	if err != nil {
