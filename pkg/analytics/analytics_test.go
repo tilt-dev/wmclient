@@ -49,6 +49,26 @@ func TestGlobalTags(t *testing.T) {
 	}
 }
 
+func TestIncrAnonymous(t *testing.T) {
+	f := newAnalyticsFixture(t, WithGlobalTags(map[string]string{"fruit": "pomelo"}))
+	f.a.IncrAnonymous("event", map[string]string{"season": "summer"})
+	f.a.Flush(time.Second)
+
+	if len(f.reqs) != 1 {
+		t.Fatalf("Expected 1 event sent. Actual: %d", len(f.reqs))
+	}
+
+	expected := `{"name":"test-app.event","season":"summer"}`
+	body, err := ioutil.ReadAll(f.reqs[0].Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if string(body) != expected {
+		t.Errorf("Request body did not match\nExpected: %s\nActual: %s", expected, string(body))
+	}
+}
+
 type analyticsFixture struct {
 	t    *testing.T
 	a    Analytics
