@@ -1,6 +1,7 @@
 package analytics_test
 
 import (
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -19,20 +20,26 @@ func TestSetOptStr(t *testing.T) {
 	defer f.tearDown()
 	f.assertOptStatus(analytics.OptDefault)
 
-	analytics.SetOptStr("opt-in")
-	f.assertOptStatus(analytics.OptIn)
+	for _, v := range []struct {
+		s string
+		opt analytics.Opt
+	}{
+		{"opt-in", analytics.OptIn},
+		{"opt-out", analytics.OptOut},
+		{"in", analytics.OptIn},
+		{"out", analytics.OptOut},
+	} {
+		opt, err := analytics.SetOptStr(v.s)
+		if assert.NoError(t, err) {
+			assert.Equal(t, v.opt, opt)
+			f.assertOptStatus(v.opt)
+		}
+	}
 
-	analytics.SetOptStr("opt-out")
-	f.assertOptStatus(analytics.OptOut)
-
-	analytics.SetOptStr("in")
-	f.assertOptStatus(analytics.OptIn)
-
-	analytics.SetOptStr("out")
-	f.assertOptStatus(analytics.OptOut)
-
-	analytics.SetOptStr("foo")
-	f.assertOptStatus(analytics.OptDefault)
+	_, err := analytics.SetOptStr("foo")
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "unknown analytics opt: \"foo\"")
+	}
 }
 
 func TestSetOpt(t *testing.T) {
@@ -64,7 +71,10 @@ func setup(t *testing.T) *fixture {
 		t.Fatalf("Error making temp dir: %v", err)
 	}
 
-	os.Setenv("WINDMILL_DIR", dir)
+	err = os.Setenv("WINDMILL_DIR", dir)
+	if !assert.NoError(t, err) {
+		t.FailNow()
+	}
 	return &fixture{t: t, dir: dir, oldWindmillDir: oldWindmillDir}
 }
 
