@@ -30,15 +30,16 @@ func TestSetOptStr(t *testing.T) {
 		{"out", analytics.OptOut},
 	} {
 		opt, err := analytics.SetOptStr(v.s)
-		if !assert.NoError(t, err) {
-			t.FailNow()
+		if assert.NoError(t, err) {
+			assert.Equal(t, v.opt, opt)
+			f.assertOptStatus(v.opt)
 		}
-		assert.Equal(t, v.opt, opt)
-		f.assertOptStatus(v.opt)
 	}
 
 	_, err := analytics.SetOptStr("foo")
-	assert.Errorf(t, err, "asdf")
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "unknown analytics opt: \"foo\"")
+	}
 }
 
 func TestSetOpt(t *testing.T) {
