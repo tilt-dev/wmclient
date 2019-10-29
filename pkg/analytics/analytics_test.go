@@ -6,6 +6,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFlush(t *testing.T) {
@@ -47,6 +49,10 @@ func TestGlobalTags(t *testing.T) {
 	if string(body) != expected {
 		t.Errorf("Request body did not match\nExpected: %s\nActual: %s", expected, string(body))
 	}
+
+	tag, ok := f.a.GlobalTag("fruit")
+	assert.True(t, ok)
+	assert.Equal(t, "pomelo", tag)
 }
 
 func TestIncrAnonymous(t *testing.T) {
