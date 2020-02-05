@@ -55,9 +55,9 @@ func TestGlobalTags(t *testing.T) {
 	assert.Equal(t, "pomelo", tag)
 }
 
-func TestIncrAnonymous(t *testing.T) {
+func TestIncrWithoutGlobalTags(t *testing.T) {
 	f := newAnalyticsFixture(t, WithGlobalTags(map[string]string{"fruit": "pomelo"}))
-	f.a.IncrAnonymous("event", map[string]string{"season": "summer"})
+	f.a.WithoutGlobalTags().Incr("event", map[string]string{"season": "summer"})
 	f.a.Flush(time.Second)
 
 	if len(f.reqs) != 1 {
