@@ -1,4 +1,4 @@
-module github.com/windmilleng/wmclient
+module github.com/tilt-dev/wmclient
 
 require (
 	github.com/denisbrodbeck/machineid v1.0.0

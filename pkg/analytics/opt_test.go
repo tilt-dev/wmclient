@@ -1,12 +1,13 @@
 package analytics_test
 
 import (
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"testing"
 
-	"github.com/windmilleng/wmclient/pkg/analytics"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/tilt-dev/wmclient/pkg/analytics"
 )
 
 func TestString(t *testing.T) {
@@ -21,7 +22,7 @@ func TestSetOptStr(t *testing.T) {
 	f.assertOptStatus(analytics.OptDefault)
 
 	for _, v := range []struct {
-		s string
+		s   string
 		opt analytics.Opt
 	}{
 		{"opt-in", analytics.OptIn},

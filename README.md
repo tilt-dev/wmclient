@@ -2,8 +2,8 @@
 
 Common libraries for Windmill client apps.
 
-[![Build Status](https://circleci.com/gh/windmilleng/wmclient/tree/master.svg?style=shield)](https://circleci.com/gh/windmilleng/wmclient)
-[![GoDoc](https://godoc.org/github.com/windmilleng/wmclient?status.svg)](https://godoc.org/github.com/windmilleng/wmclient)
+[![Build Status](https://circleci.com/gh/tilt-dev/wmclient/tree/master.svg?style=shield)](https://circleci.com/gh/tilt-dev/wmclient)
+[![GoDoc](https://godoc.org/github.com/tilt-dev/wmclient?status.svg)](https://godoc.org/github.com/tilt-dev/wmclient)
 
 These libraries have Windmill-specific configuration baked in. They are probably
 not useful for a wide audience. We publish them as open-source so that Windmill users
