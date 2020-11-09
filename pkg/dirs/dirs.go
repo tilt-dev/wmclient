@@ -13,12 +13,12 @@ import (
 // For legacy reasons, we use ~/.windmill if it exists.
 // Otherwise, we use ~/.tilt-dev
 func GetTiltDevDir() (string, error) {
-	dir := os.Getenv("WMDAEMON_HOME")
+	dir := os.Getenv("TILT_DEV_DIR")
 	if dir == "" {
-		dir = os.Getenv("WINDMILL_DIR")
+		dir = os.Getenv("WMDAEMON_HOME")
 	}
 	if dir == "" {
-		dir = os.Getenv("TILT_DEV_DIR")
+		dir = os.Getenv("WINDMILL_DIR")
 	}
 	if dir == "" {
 		homedir, err := homedir.Dir()
@@ -65,7 +65,7 @@ func UseTiltDevDir() (*TiltDevDir, error) {
 	return &TiltDevDir{dir: dir}, nil
 }
 
-// Create a windmill dir at an arbitrary directory. Useful for testing.
+// Create a .tilt-dev dir at an arbitrary directory. Useful for testing.
 func NewTiltDevDirAt(dir string) *TiltDevDir {
 	return &TiltDevDir{dir: dir}
 }

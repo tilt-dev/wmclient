@@ -6,17 +6,22 @@ import (
 	"path"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTiltDevDir(t *testing.T) {
 	emptyPath := ""
 	oldWmdaemonHome := os.Getenv("WMDAEMON_HOME")
 	oldHome := os.Getenv("HOME")
-	oldTiltDevDir := os.Getenv("WINDMILL_DIR")
+	oldWindmillDir := os.Getenv("WINDMILL_DIR")
+	oldTiltDevDir := os.Getenv("TILT_DEV_DIR")
 	defer os.Setenv("WMDAEMON_HOME", oldWmdaemonHome)
 	defer os.Setenv("HOME", oldHome)
-	defer os.Setenv("WINDMILL_DIR", oldTiltDevDir)
-	tmpHome := os.TempDir()
+	defer os.Setenv("WINDMILL_DIR", oldWindmillDir)
+	defer os.Setenv("TILT_DEV_DIR", oldTiltDevDir)
+	tmpHome, err := ioutil.TempDir("", t.Name())
+	require.NoError(t, err)
 
 	f := setup(t)
 
@@ -42,6 +47,10 @@ func TestTiltDevDir(t *testing.T) {
 
 	os.Unsetenv("WMDAEMON_HOME")
 	f.assertTiltDevDir(wmDir, "no WMDAEMON_HOME")
+
+	tiltDevDir := os.TempDir()
+	os.Setenv("TILT_DEV_DIR", tiltDevDir)
+	f.assertTiltDevDir(tiltDevDir, "TILT_DEV_DIR has precedence")
 }
 
 func TestOpenFile(t *testing.T) {
@@ -88,6 +97,6 @@ func (f *fixture) assertTiltDevDir(expected, testCase string) {
 	}
 
 	if actual != absExpected {
-		f.t.Errorf("[TEST CASE: %s] got windmill dir %q; expected %q", testCase, actual, absExpected)
+		f.t.Errorf("[TEST CASE: %s] got dir %q; expected %q", testCase, actual, absExpected)
 	}
 }
